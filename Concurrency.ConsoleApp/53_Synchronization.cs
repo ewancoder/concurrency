@@ -1,0 +1,34 @@
+﻿namespace Concurrency.ConsoleApp;
+
+public sealed class Example_53 : IExample
+{
+    private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly List<Guid> _generatedGuids = [];
+
+    public void Main()
+    {
+        var tasks = Enumerable.Range(1, 1000)
+            .Select(_ => Generate())
+            .ToList();
+
+        //Task.WaitAll([..tasks]);
+        Console.WriteLine("Done!");
+
+        Console.ReadLine();
+    }
+
+    private async Task Generate()
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            //await Task.Delay(500); // Comment out.
+            _generatedGuids.Add(Guid.NewGuid());
+            throw new InvalidOperationException();
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+}
